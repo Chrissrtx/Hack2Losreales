@@ -52,9 +52,7 @@ function App() {
             path="/sectors/:id/story"
             element={
               <PrivateRoute>
-                <Layout>
-                  <SectorStory />
-                </Layout>
+                <SectorStory />
               </PrivateRoute>
             }
           />

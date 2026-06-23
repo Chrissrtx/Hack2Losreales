@@ -18,7 +18,7 @@ export class ApiError extends Error {
 
 // Convencion temporal: A debe guardar el token con esta misma key al hacer login.
 function getToken(): string | null {
-  return localStorage.getItem('tropelcare_token');
+  return localStorage.getItem('token');
 }
 
 export function isAbortError(err: unknown): boolean {

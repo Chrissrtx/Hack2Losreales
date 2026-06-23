@@ -1,11 +1,25 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api, type DashboardSummary } from '../services/api';
+import { useSectors } from '../hooks/useSectors';
 
 
 export const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
+  const { sectors, status: sectorsStatus } = useSectors();
   const [data, setData] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const handleSectorClick = (sectorId: string) => {
+    if (document.startViewTransition) {
+      document.startViewTransition(() => {
+        navigate(`/sectors/${sectorId}/story`);
+      });
+    } else {
+      navigate(`/sectors/${sectorId}/story`);
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -328,6 +342,67 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
+      </div>
+
+      {/* Sectors Grid for Checkpoint 5 */}
+      <div className="bg-[#0f111a] border border-indigo-500/10 rounded-xl p-6 shadow-lg shadow-black/30">
+        <h3 className="text-base font-semibold text-white tracking-wide mb-6 uppercase flex items-center">
+          <span className="w-1.5 h-4 bg-emerald-500 rounded mr-2 inline-block"></span>
+          Ecosistemas de la Colonia (Sectores)
+        </h3>
+
+        {sectorsStatus === 'loading' && (
+          <div className="text-sm text-gray-500 font-mono">Cargando sectores...</div>
+        )}
+
+        {sectorsStatus === 'error' && (
+          <div className="text-sm text-rose-400 font-mono">Error al cargar telemetría de sectores.</div>
+        )}
+
+        {sectorsStatus === 'success' && sectors.length === 0 && (
+          <div className="text-sm text-gray-500 font-mono">No hay sectores disponibles.</div>
+        )}
+
+        {sectorsStatus === 'success' && sectors.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {sectors.map((sector) => {
+              const stability = sector.stabilityLevel;
+              const stabilityColor = stability >= 80 ? 'text-emerald-400' : stability >= 60 ? 'text-amber-400' : 'text-rose-500';
+              const stabilityBg = stability >= 80 ? 'bg-emerald-500' : stability >= 60 ? 'bg-amber-500' : 'bg-rose-500';
+
+              return (
+                <div
+                  key={sector.id}
+                  onClick={() => handleSectorClick(sector.id)}
+                  className="p-4 bg-[#07080c] border border-indigo-500/5 hover:border-indigo-500/30 rounded-lg cursor-pointer transition-all duration-300 flex flex-col justify-between space-y-4 group hover:shadow-[0_0_15px_rgba(99,102,241,0.05)]"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="text-[9px] font-mono text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded border border-indigo-500/20">{sector.sectorCode}</span>
+                      <h4 className="text-sm font-semibold text-white mt-2 group-hover:text-indigo-400 transition-colors">{sector.name}</h4>
+                    </div>
+                    <span className="text-[9px] font-mono text-gray-500 uppercase">{sector.climate.replace('_', ' ')}</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs font-mono">
+                      <span className="text-gray-500">ESTABILIDAD</span>
+                      <span className={stabilityColor}>{stability}%</span>
+                    </div>
+                    <div className="w-full bg-slate-900 h-1 rounded-full overflow-hidden">
+                      <div className={`h-full ${stabilityBg} transition-all duration-500`} style={{ width: `${stability}%` }} />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center text-xs font-mono border-t border-indigo-500/5 pt-3">
+                    <span className="text-gray-500">CARGA: <strong className="text-gray-300">{sector.currentLoad} / {sector.capacity}</strong></span>
+                    <span className="text-indigo-400 text-[10px] group-hover:translate-x-1 transition-transform inline-block">VER NARRATIVA →</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
     </div>
