@@ -76,15 +76,30 @@ export function useTropelFilters() {
 /** Trae la pagina de Tropeles correspondiente a `filters`, descartando respuestas tardias. */
 export function useTropeles(filters: TropelFilters) {
   const [data, setData] = useState<TropelPage | null>(null);
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('loading');
   const [error, setError] = useState<ApiError | null>(null);
   const requestIdRef = useRef(0);
+
+  const [prevFilters, setPrevFilters] = useState(filters);
+  const filtersChanged = (
+    filters.page !== prevFilters.page ||
+    filters.size !== prevFilters.size ||
+    filters.species !== prevFilters.species ||
+    filters.vitalState !== prevFilters.vitalState ||
+    filters.sectorId !== prevFilters.sectorId ||
+    filters.q !== prevFilters.q ||
+    filters.sort !== prevFilters.sort
+  );
+
+  if (filtersChanged) {
+    setPrevFilters(filters);
+    setStatus('loading');
+    setError(null);
+  }
 
   useEffect(() => {
     const requestId = ++requestIdRef.current;
     const controller = new AbortController();
-    setStatus('loading');
-    setError(null);
 
     const qs = buildQueryString({
       page: filters.page,

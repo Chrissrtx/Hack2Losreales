@@ -55,12 +55,29 @@ export function useSignalsFeed(filters: SignalFeedFilters, limit = 15) {
   const [items, setItems] = useState<SignalDTO[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
-  const [status, setStatus] = useState<FeedStatus>('idle');
+  const [status, setStatus] = useState<FeedStatus>('loading');
   const [error, setError] = useState<ApiError | null>(null);
 
   const isLoadingRef = useRef(false);
   const controllerRef = useRef<AbortController | null>(null);
   const seenIdsRef = useRef<Set<string>>(new Set());
+
+  const [prevFilters, setPrevFilters] = useState(filters);
+  const filtersChanged = (
+    filters.q !== prevFilters.q ||
+    filters.signalType !== prevFilters.signalType ||
+    filters.severity !== prevFilters.severity ||
+    filters.status !== prevFilters.status
+  );
+
+  if (filtersChanged) {
+    setPrevFilters(filters);
+    setItems([]);
+    setNextCursor(null);
+    setHasMore(true);
+    setStatus('loading');
+    setError(null);
+  }
 
   const fetchPage = useCallback(
     (cursor: string | null, isReset: boolean) => {
@@ -69,6 +86,10 @@ export function useSignalsFeed(filters: SignalFeedFilters, limit = 15) {
       controllerRef.current?.abort();
       const controller = new AbortController();
       controllerRef.current = controller;
+
+      if (isReset) {
+        seenIdsRef.current = new Set();
+      }
 
       setStatus(isReset ? 'loading' : 'loading-more');
       setError(null);
@@ -105,10 +126,6 @@ export function useSignalsFeed(filters: SignalFeedFilters, limit = 15) {
 
   // Cambiar filtros reinicia el feed desde cero.
   useEffect(() => {
-    seenIdsRef.current = new Set();
-    setItems([]);
-    setNextCursor(null);
-    setHasMore(true);
     fetchPage(null, true);
     return () => controllerRef.current?.abort();
   }, [fetchPage]);

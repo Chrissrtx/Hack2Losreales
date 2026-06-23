@@ -4,11 +4,10 @@ import type { SectorSummary } from '../types/api';
 
 export function useSectors() {
   const [sectors, setSectors] = useState<SectorSummary[]>([]);
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('loading');
 
   useEffect(() => {
     const controller = new AbortController();
-    setStatus('loading');
 
     apiFetch<{ items: SectorSummary[] }>('/sectors', {}, controller.signal)
       .then((res) => {

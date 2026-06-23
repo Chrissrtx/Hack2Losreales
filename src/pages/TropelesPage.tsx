@@ -28,9 +28,11 @@ export default function TropelesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedQ]);
 
-  useEffect(() => {
+  const [prevQ, setPrevQ] = useState(filters.q);
+  if (filters.q !== prevQ) {
+    setPrevQ(filters.q);
     setQInput(filters.q);
-  }, [filters.q]);
+  }
 
   const { data, status, error } = useTropeles(filters);
 

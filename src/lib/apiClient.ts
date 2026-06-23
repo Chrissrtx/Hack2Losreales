@@ -43,12 +43,7 @@ export async function apiFetch<T>(
   });
 
   if (!res.ok) {
-    let body: ApiErrorBody | null = null;
-    try {
-      body = (await res.json()) as ApiErrorBody;
-    } catch {
-      body = null;
-    }
+    const body = (await res.json().catch(() => null)) as ApiErrorBody | null;
     throw new ApiError(
       res.status,
       body?.error ?? 'UNKNOWN_ERROR',
